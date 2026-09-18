@@ -19,7 +19,6 @@ DATA_PATH = Path(__file__).parent / "data" / "qobo_data.json"
 with open(DATA_PATH, "r", encoding="utf-8") as f:
     _RAW = json.load(f)
 
-# Keep the useful fields from each page.
 PAGES: List[Dict] = [
     {
         "id": index,
@@ -70,7 +69,6 @@ def _tokenize(text: str) -> List[str]:
     return [w for w in _split(text) if len(w) > 2]
 
 
-# Build TF-IDF index once at import time.
 _DOCUMENTS = [
     {
         "page": page,

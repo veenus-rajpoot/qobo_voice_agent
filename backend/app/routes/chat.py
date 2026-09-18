@@ -36,14 +36,12 @@ async def chat(body: ChatRequest):
     if not transcript or not isinstance(transcript, str):
         return JSONResponse(status_code=400, content={"error": "transcript is required."})
 
-    # Cheap pre-filter for clearly off-topic questions
     guard_verdict = classify_relevance(transcript)
 
     if guard_verdict == "off_topic":
         return {"answer": REFUSAL, "source": "refused"}
 
     try:
-        # Retrieve only the most relevant Qobo information
         relevant_context = get_relevant_context(transcript, 3)
 
         # Build a small system prompt using the retrieved context
@@ -51,10 +49,6 @@ async def chat(body: ChatRequest):
 
         logger.info("Retrieved context characters: %d", len(relevant_context))
         logger.info("Approx context tokens: %d", -(-len(relevant_context) // 4))
-
-        # groq/compound has built-in web search: it decides on its own whether
-        # a search is needed (e.g. dataset didn't cover the question) and
-        # only pays the per-search cost when it actually searches.
         completion = await groq_client.chat.completions.create(
             model="groq/compound",
             temperature=0.3,

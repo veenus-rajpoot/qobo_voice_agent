@@ -19,8 +19,6 @@ logger = logging.getLogger("qobo.server")
 
 app = FastAPI(title="Qobo Voice Agent Backend")
 
-# Mirrors `app.use(cors())` in the Express app (open CORS).
-# Tighten `allow_origins` to your frontend's URL before shipping to production.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -43,5 +41,5 @@ app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 async def on_startup():
     if not os.getenv("GROQ_API_KEY"):
         logger.warning(
-            "WARNING: GROQ_API_KEY is not set. Copy .env.example to .env and add your key."
+            "WARNING: GROQ_API_KEY is not set. Copy to .env and add your key."
         )
