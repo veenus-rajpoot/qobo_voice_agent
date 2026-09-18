@@ -52,8 +52,11 @@ async def chat(body: ChatRequest):
         logger.info("Retrieved context characters: %d", len(relevant_context))
         logger.info("Approx context tokens: %d", -(-len(relevant_context) // 4))
 
+        # groq/compound has built-in web search: it decides on its own whether
+        # a search is needed (e.g. dataset didn't cover the question) and
+        # only pays the per-search cost when it actually searches.
         completion = await groq_client.chat.completions.create(
-            model="openai/gpt-oss-120b",
+            model="groq/compound",
             temperature=0.3,
             max_tokens=300,
             messages=[
@@ -62,10 +65,18 @@ async def chat(body: ChatRequest):
             ],
         )
 
-        raw_answer = completion.choices[0].message.content if completion.choices else None
+        message = completion.choices[0].message if completion.choices else None
+        raw_answer = message.content if message else None
         answer = raw_answer.strip() if raw_answer else REFUSAL
 
-        source = "refused" if answer == REFUSAL else "company_data_or_general"
+        used_web_search = bool(getattr(message, "executed_tools", None)) if message else False
+
+        if answer == REFUSAL:
+            source = "refused"
+        elif used_web_search:
+            source = "web_search"
+        else:
+            source = "company_data"
 
         return {"answer": answer, "source": source}
 
