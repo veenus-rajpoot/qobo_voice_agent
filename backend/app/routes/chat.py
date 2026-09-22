@@ -39,7 +39,7 @@ async def _create_completion(system_prompt: str, transcript: str):
     for attempt in range(2):
         try:
             return await groq_client.chat.completions.create(
-                model="groq/compound",
+                model="openai/gpt-oss-120b",
                 temperature=0.3,
                 max_tokens=300,
                 messages=[
